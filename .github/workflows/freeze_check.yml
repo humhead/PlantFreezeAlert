@@ -1,0 +1,34 @@
+name: Plant Freeze Alert
+
+on:
+  schedule:
+    # 5:15 PM EST / 6:15 PM EDT daily
+    - cron: '15 22 * * *'
+  workflow_dispatch:
+    inputs:
+      force_test:
+        description: 'Simulate a 28.0°F freeze alert to test ntfy.sh'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  check-freeze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check overnight freeze forecast
+        env:
+          FORCE_TEST: ${{ github.event.inputs.force_test || 'false' }}
+          NTFY_TOPIC: humhead-plants-30252
+        run: python check_freeze.py
